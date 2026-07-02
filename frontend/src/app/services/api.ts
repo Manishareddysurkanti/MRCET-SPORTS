@@ -185,4 +185,37 @@ export class ApiService {
   getSportsList(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/api/admin/sports`, { headers: this.getHeaders() });
   }
+
+  // Coach API operations
+  getCoachProfile(userId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/api/coach/profile/${userId}`, { headers: this.getHeaders() });
+  }
+
+  updateCoachProfile(userId: number, profile: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/api/coach/profile/${userId}`, profile, { headers: this.getHeaders() });
+  }
+
+  getCoachTeams(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/api/coach/teams/${userId}`, { headers: this.getHeaders() });
+  }
+
+  getTeamPlayers(teamId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/api/coach/team-players/${teamId}`, { headers: this.getHeaders() });
+  }
+
+  recordAttendance(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/api/coach/attendance`, payload, { headers: this.getHeaders() });
+  }
+
+  getAttendanceHistory(teamId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/api/coach/attendance/${teamId}`, { headers: this.getHeaders() });
+  }
+
+  recordPerformance(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/api/coach/performance`, payload, { headers: this.getHeaders() });
+  }
+
+  getTeamAnalytics(teamId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/api/coach/team-analytics/${teamId}`, { headers: this.getHeaders() });
+  }
 }

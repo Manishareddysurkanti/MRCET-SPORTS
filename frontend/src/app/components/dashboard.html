@@ -93,6 +93,38 @@
         </a>
       </ng-container>
 
+      <!-- Coach Navigation -->
+      <ng-container *ngIf="userRole === 'COACH'">
+        <a 
+          href="javascript:void(0)" 
+          (click)="switchTab('coach-profile')" 
+          [class]="activeTab === 'coach-profile' ? 'sidebar-link active' : 'sidebar-link'"
+        >
+          <i class="fa-solid fa-user-tie me-2"></i> Coach Profile
+        </a>
+        <a 
+          href="javascript:void(0)" 
+          (click)="switchTab('coach-teams')" 
+          [class]="activeTab === 'coach-teams' ? 'sidebar-link active' : 'sidebar-link'"
+        >
+          <i class="fa-solid fa-users me-2"></i> My Teams
+        </a>
+        <a 
+          href="javascript:void(0)" 
+          (click)="switchTab('coach-attendance')" 
+          [class]="activeTab === 'coach-attendance' ? 'sidebar-link active' : 'sidebar-link'"
+        >
+          <i class="fa-solid fa-clipboard-user me-2"></i> Roster Attendance
+        </a>
+        <a 
+          href="javascript:void(0)" 
+          (click)="switchTab('coach-performance')" 
+          [class]="activeTab === 'coach-performance' ? 'sidebar-link active' : 'sidebar-link'"
+        >
+          <i class="fa-solid fa-medal me-2"></i> Athlete Performance
+        </a>
+      </ng-container>
+
     </nav>
 
     <hr class="text-secondary mt-5" />
@@ -124,6 +156,10 @@
           {{ activeTab === 'bookings-student' ? 'Reserve Facility Grounds' : '' }}
           {{ activeTab === 'performance-student' ? 'Athletic Performance Track' : '' }}
           {{ activeTab === 'notifications-student' ? 'Notifications & Bulletins' : '' }}
+          {{ activeTab === 'coach-profile' ? 'Coach Roster Profile' : '' }}
+          {{ activeTab === 'coach-teams' ? 'Manage Assigned Teams' : '' }}
+          {{ activeTab === 'coach-attendance' ? 'Log Student Roster Attendance' : '' }}
+          {{ activeTab === 'coach-performance' ? 'Log Athlete Performance Ratings' : '' }}
         </span>
         <div class="ms-auto d-flex align-items-center gap-3">
           <span class="small text-muted"><i class="fa-regular fa-clock me-1"></i> Academic Term 2026</span>
@@ -863,6 +899,268 @@
             </div>
             <h6 class="fw-bold text-dark">{{ note.title }}</h6>
             <p class="text-muted small mb-0">{{ note.message }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 11. COACH PROFILE PANEL ================= -->
+      <section *ngIf="activeTab === 'coach-profile' && userRole === 'COACH'">
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 text-center bg-white rounded-4">
+              <div class="mx-auto bg-success-subtle text-success rounded-full d-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px; border-radius: 50% !important;">
+                <i class="fa-solid fa-user-tie fa-3x"></i>
+              </div>
+              <h4 class="fw-bold">{{ userName }}</h4>
+              <span class="badge bg-success mb-2">Sports Coach</span>
+              <p class="small text-muted m-0">Specialty: {{ coachProfile.sport?.name || 'N/A' }}</p>
+              <p class="small text-muted m-0">Experience: {{ coachProfile.experience || 0 }} Years</p>
+            </div>
+          </div>
+
+          <div class="col-md-8">
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
+              <h5 class="fw-bold mb-3"><i class="fa-solid fa-id-card text-primary me-2"></i>Edit Coach Profile</h5>
+              <form (submit)="saveCoachProfile()">
+                <div class="row">
+                  <div class="col-6 mb-3">
+                    <label class="form-label small">Experience (Years)</label>
+                    <input type="number" class="form-control" [(ngModel)]="coachProfile.experience" name="experience" required min="0"/>
+                  </div>
+                  <div class="col-6 mb-3">
+                    <label class="form-label small">Contact Number</label>
+                    <input type="text" class="form-control" [(ngModel)]="coachProfile.contact" name="contact"/>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small">Sports Speciality</label>
+                  <select class="form-select" [(ngModel)]="coachProfile.sport" name="sport" [compareWith]="compareObjects">
+                    <option *ngFor="let s of sportsList" [ngValue]="s">{{ s.name }}</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary px-4 py-2 rounded-3 fw-semibold">Save Profile Updates</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 12. COACH TEAMS PANEL ================= -->
+      <section *ngIf="activeTab === 'coach-teams' && userRole === 'COACH'">
+        <div class="row g-4">
+          <!-- Team Selection -->
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-4 mb-4">
+              <h5 class="fw-bold mb-3"><i class="fa-solid fa-list-ul text-primary me-2"></i>My Assigned Teams</h5>
+              <div class="list-group list-group-flush">
+                <button 
+                  *ngFor="let t of coachTeams" 
+                  (click)="selectCoachTeam(t.id)" 
+                  [class]="selectedTeamId === t.id ? 'list-group-item list-group-item-action border-0 rounded-3 bg-primary-subtle text-primary fw-bold mb-1' : 'list-group-item list-group-item-action border-0 rounded-3 mb-1'"
+                >
+                  {{ t.name }}
+                  <span class="badge bg-secondary float-end">{{ t.sport?.name }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Team Analytics Summary -->
+            <div *ngIf="teamAnalytics" class="card border-0 shadow-sm p-4 bg-white rounded-4">
+              <h5 class="fw-bold mb-3"><i class="fa-solid fa-chart-pie text-success me-2"></i>Team Analytics</h5>
+              <div class="mb-2 d-flex justify-content-between">
+                <span class="text-muted">Total Matches:</span>
+                <span class="fw-bold">{{ teamAnalytics.matchesPlayed || 0 }}</span>
+              </div>
+              <div class="mb-2 d-flex justify-content-between text-success">
+                <span>Wins:</span>
+                <span class="fw-bold">{{ teamAnalytics.wins || 0 }}</span>
+              </div>
+              <div class="mb-2 d-flex justify-content-between text-danger">
+                <span>Losses:</span>
+                <span class="fw-bold">{{ teamAnalytics.losses || 0 }}</span>
+              </div>
+              <div class="mb-2 d-flex justify-content-between text-info">
+                <span>Draws:</span>
+                <span class="fw-bold">{{ teamAnalytics.draws || 0 }}</span>
+              </div>
+              <div class="mt-3 pt-3 border-t text-center small text-muted">
+                Win Rate: <span class="fw-bold text-dark">{{ teamAnalytics.winRate || 0 }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team Roster -->
+          <div class="col-md-8">
+            <div *ngIf="!selectedTeamId" class="card border-0 shadow-sm p-5 text-center bg-white rounded-4">
+              <i class="fa-solid fa-users fa-3x text-muted mb-3"></i>
+              <p class="text-muted">Select a team from the left panel to review its student athlete roster.</p>
+            </div>
+
+            <div *ngIf="selectedTeamId" class="card border-0 shadow-sm p-4 bg-white rounded-4">
+              <h5 class="fw-bold mb-3"><i class="fa-solid fa-users text-primary me-2"></i>Team Roster List</h5>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead>
+                    <tr class="small text-muted">
+                      <th>Athlete Name</th>
+                      <th>Roll Number</th>
+                      <th>Department</th>
+                      <th>Year</th>
+                      <th>Contact</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let p of teamPlayers">
+                      <td class="fw-bold">{{ p.name }}</td>
+                      <td>{{ p.studentProfile?.rollNo }}</td>
+                      <td>{{ p.studentProfile?.dept }}</td>
+                      <td>Year {{ p.studentProfile?.year }}</td>
+                      <td>{{ p.studentProfile?.contact }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 13. COACH ATTENDANCE PANEL ================= -->
+      <section *ngIf="activeTab === 'coach-attendance' && userRole === 'COACH'">
+        <div class="row g-4">
+          <!-- Attendance Logger -->
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
+              <h5 class="fw-bold mb-3"><i class="fa-solid fa-clipboard-user text-primary me-2"></i>Log Attendance</h5>
+              
+              <div class="row g-3 mb-4">
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-muted">Selected Team</label>
+                  <select class="form-select rounded-3" [(ngModel)]="selectedTeamId" name="selectedTeamId" (change)="selectCoachTeam(selectedTeamId!)">
+                    <option *ngFor="let t of coachTeams" [value]="t.id">{{ t.name }}</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-muted">Date</label>
+                  <input type="date" class="form-control rounded-3" [(ngModel)]="attendanceDate" name="attendanceDate"/>
+                </div>
+              </div>
+
+              <div *ngIf="!selectedTeamId" class="text-center p-4 text-muted small">
+                Please select a team to load the attendance sheet.
+              </div>
+
+              <div *ngIf="selectedTeamId" class="space-y-2 mb-4">
+                <div *ngFor="let p of teamPlayers" class="d-flex align-items-center justify-content-between p-2.5 border rounded-3 bg-light">
+                  <span class="fw-semibold text-dark">{{ p.name }} <span class="small text-muted block" style="font-size: 0.75rem;">{{ p.studentProfile?.rollNo }}</span></span>
+                  <select class="form-select form-select-sm rounded-2" style="width: 120px;" [(ngModel)]="attendanceStatusMap[p.id]" name="status_{{p.id}}">
+                    <option value="PRESENT">Present</option>
+                    <option value="ABSENT">Absent</option>
+                    <option value="EXCUSED">Excused</option>
+                  </select>
+                </div>
+              </div>
+
+              <button *ngIf="selectedTeamId" (click)="submitAttendance()" class="btn btn-primary w-100 py-2.5 rounded-3 fw-semibold">
+                Submit Attendance Log
+              </button>
+            </div>
+          </div>
+
+          <!-- Attendance Logs History -->
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
+              <h5 class="fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left text-success me-2"></i>Attendance Log History</h5>
+              <div *ngIf="attendanceHistory.length === 0" class="text-center p-5 text-muted small">
+                No past logs recorded for the selected team.
+              </div>
+              <div class="table-responsive" *ngIf="attendanceHistory.length > 0">
+                <table class="table align-middle">
+                  <thead>
+                    <tr class="small text-muted">
+                      <th>Date</th>
+                      <th>Athlete</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of attendanceHistory">
+                      <td>{{ row.attendanceDate }}</td>
+                      <td class="fw-bold">{{ row.student?.name }}</td>
+                      <td>
+                        <span class="badge" [class.bg-success]="row.status==='PRESENT'" [class.bg-danger]="row.status==='ABSENT'" [class.bg-secondary]="row.status==='EXCUSED'">
+                          {{ row.status }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 14. COACH ATHLETE PERFORMANCE PANEL ================= -->
+      <section *ngIf="activeTab === 'coach-performance' && userRole === 'COACH'">
+        <div class="row g-4">
+          <!-- Log Performance Rating -->
+          <div class="col-md-5">
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
+              <h5 class="fw-bold mb-3"><i class="fa-solid fa-medal text-primary me-2"></i>Record Performance Rating</h5>
+              <form (submit)="submitPerformance()">
+                <div class="mb-3">
+                  <label class="form-label small">Select Team</label>
+                  <select class="form-select" [(ngModel)]="selectedTeamId" name="selectedTeamId" (change)="selectCoachTeam(selectedTeamId!)">
+                    <option *ngFor="let t of coachTeams" [value]="t.id">{{ t.name }}</option>
+                  </select>
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label small">Select Athlete</label>
+                  <select class="form-select" [(ngModel)]="perfStudentId" name="perfStudentId" required>
+                    <option value="0">Select Player</option>
+                    <option *ngFor="let p of teamPlayers" [value]="p.id">{{ p.name }}</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small">Performance Rating Score (1-10)</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="range" class="form-range flex-fill" min="1" max="10" step="1" [(ngModel)]="perfScore" name="perfScore"/>
+                    <span class="badge bg-indigo rounded-pill px-3 py-1.5 fw-bold h5 mb-0">{{ perfScore }} / 10</span>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small">Stat Metrics JSON (e.g. goals scored, runs, etc.)</label>
+                  <input type="text" class="form-control" [(ngModel)]="perfStatsJson" name="perfStatsJson" placeholder='{"goals": 2, "assists": 1}'/>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small">Feedback Comments</label>
+                  <textarea class="form-control" [(ngModel)]="perfFeedback" name="perfFeedback" rows="3" placeholder="Provide direct pointers for the athlete..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-semibold">Save Performance Log</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Quick Guidelines -->
+          <div class="col-md-7">
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
+              <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-info text-info me-2"></i>Performance Logging Guidelines</h5>
+              <div class="alert alert-info rounded-3">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>Log ratings directly after matches and practice games. Registered students can check these feedback comments instantly in their Student Performance Panel.
+              </div>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item bg-transparent"><i class="fa-regular fa-star text-warning me-2"></i><strong>9-10 Rating:</strong> Outstanding contribution, match MVP, or excellent fitness.</li>
+                <li class="list-group-item bg-transparent"><i class="fa-regular fa-star text-warning me-2"></i><strong>7-8 Rating:</strong> Good team player, fulfilled tactical tasks cleanly.</li>
+                <li class="list-group-item bg-transparent"><i class="fa-regular fa-star text-warning me-2"></i><strong>5-6 Rating:</strong> Decent performance, needs work on game stamina or techniques.</li>
+                <li class="list-group-item bg-transparent"><i class="fa-regular fa-star text-warning me-2"></i><strong>Below 5:</strong> Needs direct supervision and extra training logs.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>

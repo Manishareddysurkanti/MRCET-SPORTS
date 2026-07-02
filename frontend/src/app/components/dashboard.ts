@@ -44,6 +44,22 @@ export class Dashboard implements OnInit {
   coachProfile: any = {};
   attendanceRecords: any[] = [];
 
+  // Coach specific bindings
+  coachTeams: any[] = [];
+  selectedTeamId: number | null = null;
+  teamPlayers: any[] = [];
+  teamAnalytics: any = null;
+  attendanceHistory: any[] = [];
+  
+  attendanceDate = new Date().toISOString().split('T')[0];
+  attendanceStatusMap: { [key: number]: string } = {};
+
+  perfStudentId = 0;
+  perfMatchId = '';
+  perfScore = 5;
+  perfStatsJson = '';
+  perfFeedback = '';
+
   // Forms / Modals Data Binding
   newSport = { name: '', type: 'TEAM', description: '', rules: '' };
   newGround = { name: '', location: '', status: 'Available' };
@@ -113,7 +129,13 @@ export class Dashboard implements OnInit {
 
   loadCoachData() {
     if (!this.userId) return;
-    // Load coach profile and related services
+    this.api.getCoachProfile(this.userId).subscribe(res => this.coachProfile = res);
+    this.api.getCoachTeams(this.userId).subscribe(res => {
+      this.coachTeams = res;
+      if (res.length > 0 && !this.selectedTeamId) {
+        this.selectCoachTeam(res[0].id);
+      }
+    });
     this.api.getAllSports().subscribe(res => this.sportsList = res);
   }
 
@@ -126,7 +148,73 @@ export class Dashboard implements OnInit {
       this.loadAdminData();
     } else if (this.userRole === 'STUDENT') {
       this.loadStudentData();
+    } else if (this.userRole === 'COACH') {
+      this.loadCoachData();
     }
+  }
+
+  // COACH OPERATIONS
+  selectCoachTeam(teamId: number) {
+    this.selectedTeamId = teamId;
+    this.api.getTeamPlayers(teamId).subscribe(res => {
+      this.teamPlayers = res;
+      this.attendanceStatusMap = {};
+      res.forEach((p: any) => {
+        this.attendanceStatusMap[p.id] = 'PRESENT';
+      });
+    });
+    this.api.getAttendanceHistory(teamId).subscribe(res => this.attendanceHistory = res);
+    this.api.getTeamAnalytics(teamId).subscribe(res => this.teamAnalytics = res);
+  }
+
+  submitAttendance() {
+    if (!this.selectedTeamId) return;
+    const payload = {
+      teamId: this.selectedTeamId,
+      date: this.attendanceDate,
+      statusMap: this.attendanceStatusMap
+    };
+    this.api.recordAttendance(payload).subscribe({
+      next: () => {
+        this.successMsg = 'Attendance recorded successfully!';
+        this.selectCoachTeam(this.selectedTeamId!);
+      },
+      error: (err) => this.errorMsg = err.error?.error || 'Failed to record attendance.'
+    });
+  }
+
+  submitPerformance() {
+    if (!this.perfStudentId) {
+      this.errorMsg = 'Please select a student.';
+      return;
+    }
+    const payload = {
+      studentId: this.perfStudentId,
+      sportId: this.coachProfile.sport?.id,
+      matchId: this.perfMatchId ? parseInt(this.perfMatchId, 10) : null,
+      score: this.perfScore,
+      statsJson: this.perfStatsJson || '{}',
+      feedback: this.perfFeedback
+    };
+    this.api.recordPerformance(payload).subscribe({
+      next: () => {
+        this.successMsg = 'Performance record saved successfully!';
+        this.perfStudentId = 0;
+        this.perfMatchId = '';
+        this.perfScore = 5;
+        this.perfStatsJson = '';
+        this.perfFeedback = '';
+      },
+      error: (err) => this.errorMsg = err.error?.error || 'Failed to save performance record.'
+    });
+  }
+
+  saveCoachProfile() {
+    if (!this.userId) return;
+    this.api.updateCoachProfile(this.userId, this.coachProfile).subscribe({
+      next: () => this.successMsg = 'Coach profile updated successfully!',
+      error: () => this.errorMsg = 'Failed to update profile.'
+    });
   }
 
   // STUDENT OPERATIONS
@@ -288,5 +376,9 @@ export class Dashboard implements OnInit {
 
   logout() {
     this.api.logout();
+  }
+
+  compareObjects(o1: any, o2: any): boolean {
+    return o1 && o2 ? o1.id === o2.id : o1 === o2;
   }
 }
