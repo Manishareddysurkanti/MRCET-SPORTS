@@ -870,12 +870,15 @@
               </thead>
               <tbody>
                 <tr *ngFor="let row of studentPerformance">
-                  <td>{{ row.recordDate }}</td>
+                  <td>{{ row.recordedDate }}</td>
                   <td class="fw-bold">{{ row.sport?.name }}</td>
                   <td>
-                    <span class="badge bg-indigo rounded-pill px-3">{{ row.performanceRating }} / 10</span>
+                    <span class="badge bg-indigo rounded-pill px-3">{{ row.performanceScore }} / 10</span>
                   </td>
-                  <td>{{ row.comments }}</td>
+                  <td>
+                    <div>{{ row.feedback }}</div>
+                    <small class="text-muted d-block mt-1" *ngIf="row.statsJson && row.statsJson !== '{}'">Metrics: {{ row.statsJson }}</small>
+                  </td>
                 </tr>
               </tbody>
             </table>
