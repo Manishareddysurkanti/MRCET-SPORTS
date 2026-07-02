@@ -1,0 +1,249 @@
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-6 col-lg-5">
+      
+      <!-- Logo and Header -->
+      <div class="text-center mb-4">
+        <i class="fa-solid fa-trophy text-primary fa-3x mb-2 animate-bounce"></i>
+        <h2 class="h3 fw-bold text-dark">MRCET Sports</h2>
+        <p class="text-muted">College Sports Management System</p>
+      </div>
+
+      <!-- Main Login/Register Card -->
+      <div class="card border-0 shadow-lg p-4 bg-white rounded-4">
+        
+        <!-- Tabs for Switching Mode -->
+        <div class="d-flex justify-content-center gap-2 mb-4">
+          <button 
+            type="button" 
+            (click)="toggleView('login')" 
+            [class]="viewMode() === 'login' ? 'btn btn-primary px-4 rounded-pill' : 'btn btn-light px-4 rounded-pill'"
+          >
+            Login
+          </button>
+          <button 
+            type="button" 
+            (click)="toggleView('register')" 
+            [class]="viewMode() === 'register' ? 'btn btn-primary px-4 rounded-pill' : 'btn btn-light px-4 rounded-pill'"
+          >
+            Register
+          </button>
+        </div>
+
+        <!-- Alert messages -->
+        <div *ngIf="errorMsg" class="alert alert-danger d-flex align-items-center gap-2 rounded-3 py-2.5" role="alert">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <div>{{ errorMsg }}</div>
+        </div>
+        <div *ngIf="successMsg" class="alert alert-success d-flex align-items-center gap-2 rounded-3 py-2.5" role="alert">
+          <i class="fa-solid fa-circle-check"></i>
+          <div>{{ successMsg }}</div>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form *ngIf="viewMode() === 'login'" (onSubmit)="handleLogin($event)" (submit)="handleLogin($event)">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-envelope"></i></span>
+              <input 
+                type="email" 
+                class="form-control border-start-0 ps-0" 
+                [(ngModel)]="email" 
+                name="email" 
+                required 
+                placeholder="admin@sports.college.edu"
+              />
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label class="form-label small fw-semibold text-muted">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-lock"></i></span>
+              <input 
+                type="password" 
+                class="form-control border-start-0 ps-0" 
+                [(ngModel)]="password" 
+                name="password" 
+                required 
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-semibold">
+            Sign In <i class="fa-solid fa-right-to-bracket ms-2"></i>
+          </button>
+        </form>
+
+        <!-- REGISTRATION FORM -->
+        <form *ngIf="viewMode() === 'register'" (onSubmit)="handleRegister($event)" (submit)="handleRegister($event)">
+          
+          <!-- Role Selector -->
+          <div class="d-flex bg-light p-1 rounded-3 mb-3 justify-content-between">
+            <button 
+              type="button" 
+              (click)="setRegRole('STUDENT')" 
+              [class]="regRole() === 'STUDENT' ? 'btn btn-white shadow-sm flex-fill text-center rounded-2 py-1.5' : 'btn btn-link text-muted flex-fill text-center text-decoration-none rounded-2 py-1.5'"
+            >
+              Student
+            </button>
+            <button 
+              type="button" 
+              (click)="setRegRole('COACH')" 
+              [class]="regRole() === 'COACH' ? 'btn btn-white shadow-sm flex-fill text-center rounded-2 py-1.5' : 'btn btn-link text-muted flex-fill text-center text-decoration-none rounded-2 py-1.5'"
+            >
+              Coach
+            </button>
+          </div>
+
+          <!-- Common Fields -->
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Full Name</label>
+            <input 
+              type="text" 
+              class="form-control rounded-3" 
+              [(ngModel)]="name" 
+              name="name" 
+              required 
+              placeholder="John Doe"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Email Address</label>
+            <input 
+              type="email" 
+              class="form-control rounded-3" 
+              [(ngModel)]="email" 
+              name="email" 
+              required 
+              placeholder="john.doe@college.edu"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Password</label>
+            <input 
+              type="password" 
+              class="form-control rounded-3" 
+              [(ngModel)]="password" 
+              name="password" 
+              required 
+              placeholder="••••••••"
+            />
+          </div>
+
+          <!-- Student-specific fields -->
+          <div *ngIf="regRole() === 'STUDENT'">
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-semibold text-muted">Roll Number</label>
+                <input 
+                  type="text" 
+                  class="form-control rounded-3" 
+                  [(ngModel)]="rollNo" 
+                  name="rollNo" 
+                  required 
+                  placeholder="CS23B1042"
+                />
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-semibold text-muted">Year</label>
+                <select class="form-select rounded-3" [(ngModel)]="year" name="year">
+                  <option value="1">1st Year</option>
+                  <option value="2">2nd Year</option>
+                  <option value="3">3rd Year</option>
+                  <option value="4">4th Year</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label small fw-semibold text-muted">Department</label>
+              <input 
+                type="text" 
+                class="form-control rounded-3" 
+                [(ngModel)]="dept" 
+                name="dept" 
+                required 
+                placeholder="Computer Science"
+              />
+            </div>
+          </div>
+
+          <!-- Coach-specific fields -->
+          <div *ngIf="regRole() === 'COACH'">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold text-muted">Specialization Sport</label>
+              <select class="form-select rounded-3" [(ngModel)]="sportId" name="sportId">
+                <option value="1">Cricket</option>
+                <option value="2">Basketball</option>
+                <option value="3">Football</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold text-muted">Experience (Years)</label>
+              <input 
+                type="number" 
+                class="form-control rounded-3" 
+                [(ngModel)]="experience" 
+                name="experience" 
+                min="0"
+              />
+            </div>
+          </div>
+
+          <!-- Contact info (common to student/coach) -->
+          <div class="mb-4">
+            <label class="form-label small fw-semibold text-muted">Contact Number</label>
+            <input 
+              type="text" 
+              class="form-control rounded-3" 
+              [(ngModel)]="contact" 
+              name="contact" 
+              placeholder="9876543210"
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-semibold">
+            Create Account <i class="fa-solid fa-user-plus ms-2"></i>
+          </button>
+        </form>
+
+      </div>
+
+      <!-- Demo Accounts Login Assistance -->
+      <div *ngIf="viewMode() === 'login'" class="card border-0 shadow-sm mt-4 p-3 bg-white rounded-4">
+        <p class="text-muted small text-center mb-2 fw-semibold">
+          <i class="fa-solid fa-key me-1"></i> Quick Demo Accounts (Click to Fill):
+        </p>
+        <div class="d-flex flex-column gap-2">
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-primary text-start rounded-3"
+            (click)="fillDemo('admin@sports.college.edu')"
+          >
+            <span class="badge bg-primary me-2">Admin</span> admin@sports.college.edu
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-success text-start rounded-3"
+            (click)="fillDemo('vikram.coach@sports.college.edu')"
+          >
+            <span class="badge bg-success me-2">Coach</span> vikram.coach@sports.college.edu
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-warning text-start text-dark rounded-3"
+            (click)="fillDemo('aarav.sharma@student.edu')"
+          >
+            <span class="badge bg-warning text-dark me-2">Student</span> aarav.sharma@student.edu
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
